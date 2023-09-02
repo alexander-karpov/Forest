@@ -10,6 +10,8 @@ public class FlippingAnimator : MonoBehaviour
 
     float _flipDistanceThreshold;
     Vector3 _lastFlipAnchorPosition;
+    float _lastFlipAnchorAngle;
+    float _lastFlipTime;
 
     /// <summary>
     /// Фаза вращения от 0 до 3
@@ -41,7 +43,21 @@ public class FlippingAnimator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        FlipUpIfNotMove();
         Flip();
+    }
+
+    private void FlipUpIfNotMove()
+    {
+        var timeSinceLastFlip = Time.timeSinceLevelLoad - _lastFlipTime;
+
+        if (_flipIndex != 0 && timeSinceLastFlip > 1f)
+        {
+            _flipIndex = 0;
+            _lastFlipTime = Time.timeSinceLevelLoad;
+
+            UpdatePositionAndRotation();
+        }
     }
 
     private void Flip()
@@ -54,18 +70,23 @@ public class FlippingAnimator : MonoBehaviour
         IncreaseFlipIndex();
 
         _lastFlipAnchorPosition = Anchor.transform.position;
-        var anchorAngles = Anchor.transform.rotation.eulerAngles;
+        _lastFlipAnchorAngle = Anchor.transform.rotation.eulerAngles.z;
+        _lastFlipTime = Time.timeSinceLevelLoad;
 
+        UpdatePositionAndRotation();
+        SyncScaleX();
+    }
+
+    private void UpdatePositionAndRotation()
+    {
         var (x, y) = _flippedPositionCorrections[_flipIndex];
         var normal = (Vector2)(Anchor.transform.rotation * Vector3.up);
         var perp = Vector2.Perpendicular(normal);
 
         transform.SetPositionAndRotation(
-            Anchor.transform.position + (Vector3)(perp * x + normal * y),
-            Quaternion.Euler(0, 0, -90f * _flipIndex + anchorAngles.z)
+            _lastFlipAnchorPosition + (Vector3)(perp * x + normal * y),
+            Quaternion.Euler(0, 0, -90f * _flipIndex + _lastFlipAnchorAngle)
         );
-
-        SyncScaleX();
     }
 
     private bool IsTimeToFlip()
