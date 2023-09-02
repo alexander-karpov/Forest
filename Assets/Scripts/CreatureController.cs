@@ -91,7 +91,8 @@ public class CreatureController : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, GroundNormal);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawRay(transform.position, GroundNormal * 3f);
+        Gizmos.DrawSphere(transform.position, 0.3f);
     }
 }
